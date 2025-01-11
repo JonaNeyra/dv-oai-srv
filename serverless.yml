@@ -12,17 +12,43 @@ provider:
   region: us-east-1
   environment:
     REGION: ${self:provider.region}
+    OPENAI_API_KEY: ${ssm:/serverless-framework/deployment/credentials/openai-api-key-param}
+    GOOGLE_CREDENTIALS: ${ssm:/serverless-framework/deployment/credentials/google-credentials-param}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - "s3:PutObject"
+            - "s3:GetObject"
+          Resource:
+            Fn::GetAtt: [ DvProductBucket, Arn ]
+        - Effect: Allow
+          Action:
+            - "ssm:GetParameter"
+          Resource: "arn:aws:ssm:${self:provider.region}:{aws:accountId}:parameter/*"
+
 
 functions:
   api:
     handler: wsgi_handler.handler
+    environment:
+      DV_PRODUCT_BUCKET:
+        Ref: DvProductBucket
     events:
       - http:
           path: /process_email
           method: POST
 
+resources:
+  Resources:
+    DvProductBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: dv-product-bucket
 
 plugins:
   - serverless-wsgi
   - serverless-python-requirements
+  - serverless-ssm-fetch
 

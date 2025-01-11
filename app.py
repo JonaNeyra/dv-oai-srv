@@ -1,6 +1,5 @@
 import os
 
-import openai
 from flask import Flask, request, jsonify, make_response
 from openai import OpenAI
 from dotenv import load_dotenv
