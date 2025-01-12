@@ -161,5 +161,10 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 
+# Serverless Fremework
 node_modules
 .serverless
+
+# Custom files
+product-knowledge-base.pdf
+faq-knowledge-base.csv

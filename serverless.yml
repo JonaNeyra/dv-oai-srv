@@ -5,6 +5,8 @@ frameworkVersion: "4"
 custom:
   wsgi:
     app: app.app
+  serverlessSsmFetch:
+    OPENAI_API_KEY: /serverless/deployment/credentials/openai-api-key-param
 
 provider:
   name: aws
@@ -12,8 +14,7 @@ provider:
   region: us-east-1
   environment:
     REGION: ${self:provider.region}
-    OPENAI_API_KEY: ${ssm:/serverless-framework/deployment/credentials/openai-api-key-param}
-    GOOGLE_CREDENTIALS: ${ssm:/serverless-framework/deployment/credentials/google-credentials-param}
+    OPENAI_API_KEY: ${ssm:/serverless/deployment/credentials/openai-api-key-param}
   iam:
     role:
       statements:
@@ -26,12 +27,14 @@ provider:
         - Effect: Allow
           Action:
             - "ssm:GetParameter"
-          Resource: "arn:aws:ssm:${self:provider.region}:{aws:accountId}:parameter/*"
+          Resource: "*"
 
 
 functions:
   api:
     handler: wsgi_handler.handler
+    ssmToEnvironment:
+      - OPENAI_API_KEY
     environment:
       DV_PRODUCT_BUCKET:
         Ref: DvProductBucket
@@ -39,6 +42,9 @@ functions:
       - http:
           path: /process_email
           method: POST
+      - http:
+          path: /upload_to_bucket
+          method: GET
 
 resources:
   Resources:

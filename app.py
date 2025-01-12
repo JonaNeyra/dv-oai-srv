@@ -4,11 +4,21 @@ from flask import Flask, request, jsonify, make_response
 from openai import OpenAI
 from dotenv import load_dotenv
 
+from utils.files import Files
+
 load_dotenv()
 
 app = Flask(__name__)
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
+@app.route('/upload_to_bucket', methods=["GET"])
+def upload_to_bucket():
+    try:
+        file_uploader = Files(bucket_name=os.getenv('DV_PRODUCT_BUCKET'))
+        file_uploader.upload()
+        return jsonify({'message': 'Files uploaded successfully'})
+    except Exception as e:
+        return make_response(jsonify(error=str(e)), 500)
 
 @app.route('/process_email', methods=["POST"])
 def process_email():
