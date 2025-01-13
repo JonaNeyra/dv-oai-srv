@@ -2,15 +2,47 @@ service: dv-oai-srv
 
 frameworkVersion: "4"
 
+package:
+  exclude:
+    - node_modules/**
+    - .serverless/**
+    - .venv/**
+    - __pycache__/**
+    - .idea/**
+    - .env
+    - faq-knowledge-base.csv
+    - product-knowledge-base.pdf
+
 custom:
   wsgi:
     app: app.app
   serverlessSsmFetch:
     OPENAI_API_KEY: /serverless/deployment/credentials/openai-api-key-param
+  pythonRequirements:
+    useStaticCache: false
+    useDownloadCache: false
+    pipCmdExtraArgs:
+      - "--platform manylinux2014_x86_64"
+      - "--implementation cp"
+      - "--python-version 3.11"
+      - "--only-binary=:all:"
+      - "--upgrade"
+    layer:
+      name: req-layer
+      description: LLM dependencies
+      compatibleRuntimes:
+        - python3.11
+      compatibleArchitectures:
+        - x86_64
+    slim: false
+    noDeploy:
+      - boto3
+      - botocore
 
 provider:
   name: aws
-  runtime: python3.10
+  runtime: python3.11
+  architecture: x86_64
   region: us-east-1
   environment:
     REGION: ${self:provider.region}
@@ -29,10 +61,11 @@ provider:
             - "ssm:GetParameter"
           Resource: "*"
 
-
 functions:
   api:
     handler: wsgi_handler.handler
+    layers:
+      - Ref: PythonRequirementsLambdaLayer
     ssmToEnvironment:
       - OPENAI_API_KEY
     environment:
@@ -55,6 +88,5 @@ resources:
 
 plugins:
   - serverless-wsgi
-  - serverless-python-requirements
   - serverless-ssm-fetch
-
+  - serverless-python-requirements

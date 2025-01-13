@@ -164,6 +164,7 @@ cython_debug/
 # Serverless Fremework
 node_modules
 .serverless
+.requirements.zip
 
 # Custom files
 product-knowledge-base.pdf

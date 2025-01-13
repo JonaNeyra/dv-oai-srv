@@ -1,5 +1,12 @@
 Flask==3.0.3
+pydantic==2.3.0
+pydantic-settings==2.0.3
+pydantic-core==2.6.3
 serverless-wsgi
 boto3
-openai
 python-dotenv
+PyPDF2
+langchain
+langchain-community
+langchain-openai
+openai
