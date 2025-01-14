@@ -5,8 +5,8 @@ pydantic-core==2.6.3
 serverless-wsgi
 boto3
 python-dotenv
-pypdf
 langchain
 langchain-community
 langchain-openai
 openai
+faiss-cpu

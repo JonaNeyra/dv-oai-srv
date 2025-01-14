@@ -2,7 +2,6 @@ import os
 
 import boto3
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 
@@ -36,13 +35,39 @@ class PdfLangchainLoader:
         tmp_pdf = '/tmp/tmp.pdf'
         with open(tmp_pdf, 'wb') as f_pdf:
             self.s3_client.download_fileobj(self.bucket_name, pdf_key, f_pdf)
-        loader = PyPDFLoader(tmp_pdf)
-        documents = loader.load()
+
+        documents = self.extract_text(tmp_pdf)
+        print(documents)
         splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-        self.content = splitter.split_documents(documents)
+        self.content = splitter.split_documents([doc for doc in documents])
         os.remove(tmp_pdf)
+        print(self.content)
 
         return self.content
+
+    def extract_text(self, pdf_path):
+        # with pdfplumber.open(pdf_path) as pdf:
+        #     documents = []
+        #     for page in pdf.pages:
+        #         text = page.extract_text()
+        #         if not text:
+        #             image = page.to_image()
+        #             text = self.ocr_image(image)
+        #         documents.append(
+        #             {
+        #                 'metadata': {'source': pdf_path, 'page': page.page_number},
+        #                 'page_content': text,
+        #             },
+        #         )
+        print(pdf_path)
+        return []
+
+    # def ocr_image(self, image):
+    #     image_stream = io.BytesIO()
+    #     image.save(image_stream, format='PNG')
+    #     image_stream.seek(0)
+    #     img = Image.open(image_stream)
+    #     return pytesseract.image_to_string(img)
 
 
 class CsvLangchainLoader:

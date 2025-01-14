@@ -165,7 +165,10 @@ cython_debug/
 node_modules
 .serverless
 .requirements.zip
+.serverless-wsgi
+serverless_wsgi.py
+wsgi_handler.py
 
 # Custom files
-product-knowledge-base.pdf
-faq-knowledge-base.csv
+docs/product-knowledge-base.pdf
+docs/faq-knowledge-base.csv

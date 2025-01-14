@@ -9,7 +9,7 @@
 - Install Flask project dependencies
 
  ```bash
- pip install -r requirements.txt
+ pip install -r requirements.pdf.txt
  ```
 
 - Install Serverless Framework plugins

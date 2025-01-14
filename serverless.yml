@@ -3,24 +3,30 @@ service: dv-oai-srv
 frameworkVersion: "4"
 
 package:
+  individually: true
   exclude:
     - node_modules/**
     - .serverless/**
     - .venv/**
     - __pycache__/**
     - .idea/**
+    - ocr-pdf/**
+    - bin/**
+    - docs/**
     - .env
-    - faq-knowledge-base.csv
-    - product-knowledge-base.pdf
+    - package.json
+    - package-lock.json
+    - requirements.pdf.txt
 
 custom:
   wsgi:
-    app: app.app
+    app: api/app.app
   serverlessSsmFetch:
     OPENAI_API_KEY: /serverless/deployment/credentials/openai-api-key-param
   pythonRequirements:
     useStaticCache: false
     useDownloadCache: false
+    fileName: api/requirements.txt
     pipCmdExtraArgs:
       - "--platform manylinux2014_x86_64"
       - "--implementation cp"
@@ -34,10 +40,22 @@ custom:
         - python3.11
       compatibleArchitectures:
         - x86_64
-    slim: false
+    slim: true
     noDeploy:
       - boto3
       - botocore
+      - requests
+      - requests_toolbelt
+      - urllib3
+      - certifi
+      - idna
+      - click
+      - tqdm
+      - typing_extensions
+      - sniffio
+      - charset_normalizer
+      - aiohttp
+      - blinker
 
 provider:
   name: aws
@@ -64,7 +82,8 @@ functions:
   api:
     handler: wsgi_handler.handler
     layers:
-      - Ref: PythonRequirementsLambdaLayer
+      - { Ref: PythonRequirementsLambdaLayer }
+      # - arn:aws:lambda:${self:provider.region}:761018871329:layer:ocr-pdf:1
     ssmToEnvironment:
       - OPENAI_API_KEY
     environment:
