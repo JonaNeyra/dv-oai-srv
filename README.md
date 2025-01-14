@@ -63,6 +63,10 @@ execute this command first
 serverless deploy
 ```
 
+> You can manually upload the files if they are known with the Amazon Console
+> * faq-knowledge-base.csv
+> * product-knowledge-base.pdf
+
 > Once the stack is built in the cloud, we can upload the files to S3 from the local server
 > * Serve the project locally with: ```$ serverless wsgi serve```
 > * Calls the GET endpoint: /upload_to_bucket

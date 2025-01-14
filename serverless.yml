@@ -52,10 +52,9 @@ provider:
       statements:
         - Effect: Allow
           Action:
-            - "s3:PutObject"
-            - "s3:GetObject"
+            - "s3:*"
           Resource:
-            Fn::GetAtt: [ DvProductBucket, Arn ]
+            - Fn::Sub: "arn:aws:s3:::${DvProductBucket}/*"
         - Effect: Allow
           Action:
             - "ssm:GetParameter"
