@@ -5,11 +5,14 @@ from flask import Flask, request, jsonify, make_response
 from langchain.chains import RetrievalQA
 from langchain_community.llms import OpenAI
 
+from api.utils.ssm_handler import decrypt_ssm_patameter
 from utils.files import Files, KnowledgeBase, PdfLangchainLoader, CsvLangchainLoader, CsvSimpleQA
 
 load_dotenv()
 
 app = Flask(__name__)
+api_key = decrypt_ssm_patameter('/serverless/deployment/credentials/openai-api-key-param')
+os.environ['OPENAI_API_KEY'] = api_key
 bucket_name = os.getenv('DV_PRODUCT_BUCKET')
 pdf_loader = PdfLangchainLoader(bucket_name)
 csv_loader = CsvLangchainLoader(bucket_name)

@@ -1,8 +1,11 @@
+import json
 import os
 
 import boto3
+from botocore.exceptions import ClientError
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.vectorstores import FAISS
+from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 
 
@@ -28,46 +31,45 @@ class Files:
 class PdfLangchainLoader:
     def __init__(self, bucket_name, region_name=None):
         self.s3_client = boto3.client('s3', region_name=region_name or os.getenv('REGION'))
+        self.lambda_client = boto3.client('lambda', region_name=region_name or os.getenv('REGION'))
         self.bucket_name = bucket_name
         self.content = None
 
     def load(self, pdf_key):
-        tmp_pdf = '/tmp/tmp.pdf'
-        with open(tmp_pdf, 'wb') as f_pdf:
-            self.s3_client.download_fileobj(self.bucket_name, pdf_key, f_pdf)
+        documents = []
+        event = {"pdf_key": pdf_key}
+        try:
+            response = self.lambda_client.invoke(
+                FunctionName="dv-oai-srv-dev-pdf-function",
+                InvocationType='RequestResponse',
+                Payload=json.dumps(event),
+            )
 
-        documents = self.extract_text(tmp_pdf)
-        print(documents)
+            payload = response['Payload'].read().decode("utf-8")
+            documents = self.process_lambda_response(payload)
+        except ClientError as e_res:
+            print(f"Error al invocar la Lambda: {e_res}")
+
         splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-        self.content = splitter.split_documents([doc for doc in documents])
-        os.remove(tmp_pdf)
+        self.content = splitter.split_documents(
+            [
+                Document(
+                    page_content=doc['page_content'],
+                    metadata=doc['metadata']
+                ) for doc in documents
+            ]
+        )
         print(self.content)
 
         return self.content
 
-    def extract_text(self, pdf_path):
-        # with pdfplumber.open(pdf_path) as pdf:
-        #     documents = []
-        #     for page in pdf.pages:
-        #         text = page.extract_text()
-        #         if not text:
-        #             image = page.to_image()
-        #             text = self.ocr_image(image)
-        #         documents.append(
-        #             {
-        #                 'metadata': {'source': pdf_path, 'page': page.page_number},
-        #                 'page_content': text,
-        #             },
-        #         )
-        print(pdf_path)
-        return []
-
-    # def ocr_image(self, image):
-    #     image_stream = io.BytesIO()
-    #     image.save(image_stream, format='PNG')
-    #     image_stream.seek(0)
-    #     img = Image.open(image_stream)
-    #     return pytesseract.image_to_string(img)
+    def process_lambda_response(self, payload):
+        try:
+            response_data = eval(payload)
+            return response_data.get("response", [])
+        except Exception as e_res:
+            print(f"Error al procesar la respuesta de Lambda: {e_res}")
+            return []
 
 
 class CsvLangchainLoader:

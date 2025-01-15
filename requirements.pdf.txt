@@ -1,3 +1,2 @@
-pytesseract
-pdfplumber
+pymupdf
 Pillow

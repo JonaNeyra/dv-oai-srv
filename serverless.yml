@@ -76,6 +76,12 @@ provider:
         - Effect: Allow
           Action:
             - "ssm:GetParameter"
+            - "ssm:GetParameters"
+            - "kms:Decrypt"
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - "lambda:InvokeFunction"
           Resource: "*"
 
 functions:
@@ -83,7 +89,6 @@ functions:
     handler: wsgi_handler.handler
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
-      # - arn:aws:lambda:${self:provider.region}:761018871329:layer:ocr-pdf:1
     ssmToEnvironment:
       - OPENAI_API_KEY
     environment:
@@ -96,6 +101,23 @@ functions:
       - http:
           path: /upload_to_bucket
           method: GET
+    package:
+      exclude:
+        - pdf-function/**
+  pdf-function:
+    handler: pdf-function/handler.lambda_handler
+    timeout: 60
+    runtime: python3.10
+    layers:
+      - arn:aws:lambda:${self:provider.region}:761018871329:layer:ocr-pdf:6
+    environment:
+      DV_PRODUCT_BUCKET:
+        Ref: DvProductBucket
+    package:
+      include:
+        - pdf-function/**
+      exclude:
+        - api/**
 
 resources:
   Resources:
